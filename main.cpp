@@ -11,7 +11,12 @@ using namespace std;
 //Screen dimension constants
 const int SCREEN_WIDTH = 840;
 const int SCREEN_HEIGHT = 480;
-bool jumped=0;
+SDL_Window* gWindow = NULL;
+
+//The window renderer
+SDL_Renderer* gRenderer = NULL;
+
+
 double initial = -13;
 double velocity=initial;
 double gravity=0.5;
@@ -60,66 +65,6 @@ class LTexture
 		int mWidth;
 		int mHeight;
 };
-
-//The Naruto that will move around on the screen
-class Naruto
-{
-    public:
-		//The dimensions of the Naruto
-		static const int Naruto_WIDTH = 50;
-		static const int Naruto_HEIGHT = 70;
-		int mPosX, mPosY;
-		//Maximum axis velocity of the Naruto
-		static const int Naruto_VEL = 10;
-
-		//Initializes the variables
-		Naruto();
-
-		//Takes key presses and adjusts the Naruto's velocity
-		void handleEvent( SDL_Event& e );
-
-		//Moves the Naruto
-		void move();
-		void jump();
-
-		//Shows the Naruto on the screen
-		void render();
-
-    private:
-		//The X and Y offsets of the Naruto
-		
-
-		//The velocity of the Naruto
-		int mVelX, mVelY;
-};
-
-//Starts up SDL and creates window
-bool init();
-
-//Loads media
-bool loadMedia();
-
-//Frees media and shuts down SDL
-void close();
-
-//The window we'll be rendering to
-SDL_Window* gWindow = NULL;
-
-//The window renderer
-SDL_Renderer* gRenderer = NULL;
-
-//Scene textures
-LTexture gNarutoTexture;
-LTexture gBGTexture;
-
-LTexture::LTexture()
-{
-	//Initialize
-	mTexture = NULL;
-	mWidth = 0;
-	mHeight = 0;
-}
-
 LTexture::~LTexture()
 {
 	//Deallocate
@@ -259,6 +204,134 @@ int LTexture::getHeight()
 {
 	return mHeight;
 }
+LTexture::LTexture()
+{
+	//Initialize
+	mTexture = NULL;
+	mWidth = 0;
+	mHeight = 0;
+}
+
+//The Naruto that will move around on the screen
+//Scene textures
+LTexture gNarutoTexture;
+LTexture gBGTexture;
+LTexture gShurikenTexture;
+
+class Shuriken
+{
+	public:
+		static const int Shuriken_WIDTH = 50;
+		static const int Shuriken_HEIGHT = 70;
+		int mPosX, mPosY;
+		int mVelX;
+		int flag_of_shuriken;
+		//Maximum axis velocity of the Naruto
+		static const int Shuriken_VEL = 10;
+
+		//Initializes the variables
+		Shuriken();
+
+		//Takes key presses and adjusts the Naruto's velocity
+		//Moves the Naruto
+		void move();
+		void close();
+		//Shows the Naruto on the screen
+		void render();
+
+    private:
+		//The X and Y offsets of the Naruto
+		//The velocity of the Naruto
+		int fuck;
+};
+
+Shuriken::Shuriken()
+{
+	
+	mVelX=Shuriken_VEL;
+	flag_of_shuriken=0;
+}	
+
+void Shuriken::move()
+{
+	mPosX+=mVelX;
+}
+void Shuriken::render()
+{
+	gShurikenTexture.render(mPosX,mPosY);
+}
+
+void Shuriken::close()
+{
+	//Free loaded images
+	gShurikenTexture.free();
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class Naruto
+{
+    public:
+		//The dimensions of the Naruto
+		static const int Naruto_WIDTH = 50;
+		static const int Naruto_HEIGHT = 70;
+		int mPosX, mPosY;
+		//Maximum axis velocity of the Naruto
+		static const int Naruto_VEL = 10;
+		int jumped;
+		int shuriken_throwed=0;
+		//Initializes the variables
+		Naruto();
+
+		//Takes key presses and adjusts the Naruto's velocity
+		void handleEvent( SDL_Event& e );
+
+		//Moves the Naruto
+		void move();
+		void jump();
+
+		//Shows the Naruto on the screen
+		void render();
+
+    private:
+		//The X and Y offsets of the Naruto
+		
+
+		//The velocity of the Naruto
+		int mVelX, mVelY;
+};
+
+//Starts up SDL and creates window
+bool init();
+
+//Loads media
+bool loadMedia();
+
+//Frees media and shuts down SDL
+void close();
+
+//The window we'll be rendering to
+
+
+
+
 
 Naruto::Naruto()
 {
@@ -269,6 +342,8 @@ Naruto::Naruto()
     //Initialize the velocity
     mVelX = 0;
     mVelY = 0;
+    jumped=0;
+    shuriken_throwed=0;
 }
 
 void Naruto::jump()
@@ -298,7 +373,8 @@ void Naruto::handleEvent( SDL_Event& e )
             case SDLK_DOWN: mVelY += Naruto_VEL; break;
             case 'a': mVelX -= Naruto_VEL; break;
             case 'd': mVelX += Naruto_VEL; break;
-            case 'w': jumped=1;
+            case 'w': jumped=1;break;
+            case 'q': shuriken_throwed=1;break;
         }
     }
     //If a key was released
@@ -311,6 +387,7 @@ void Naruto::handleEvent( SDL_Event& e )
             case SDLK_DOWN: mVelY -= Naruto_VEL; break;
             case 'a': mVelX += Naruto_VEL; break;
             case 'd': mVelX -= Naruto_VEL; break;
+
         }
     }
 }
@@ -318,6 +395,10 @@ void Naruto::handleEvent( SDL_Event& e )
 void Naruto::move()
 {
     //Move the Naruto left or right
+    if(jumped)
+	{
+		jump();
+	}
     mPosX += mVelX;
 
     //If the Naruto went too far to the left or right
@@ -416,6 +497,11 @@ bool loadMedia()
 		printf( "Failed to load background texture!\n" );
 		success = false;
 	}
+	if( !gShurikenTexture.loadFromFile( "dot.bmp" ) )
+	{
+		printf( "Failed to load background texture!\n" );
+		success = false;
+	}
 
 	return success;
 }
@@ -469,7 +555,7 @@ int main( int argc, char* args[] )
 			
 			string s= "n1.png";
 			int countt=0;
-			
+			Shuriken sos[3];
 			while( !quit )
 			{
 				//Handle events on queue
@@ -487,10 +573,25 @@ int main( int argc, char* args[] )
 
 				//Move the Naruto
 				Naruto.move();
-				if(jumped)
+				if(Naruto.shuriken_throwed)
 				{
-					Naruto.jump();
+
+					for(int i=0 ; i < 3; i++)
+					{
+						if(!sos[i].flag_of_shuriken)
+						{
+							//cout << i << endl;
+							sos[i].flag_of_shuriken=1;
+							sos[i].mPosX=Naruto.mPosX+Naruto.Naruto_WIDTH;
+							sos[i].mPosY=Naruto.mPosY + Naruto.Naruto_HEIGHT/3;
+							break;
+						}
+					}	
+					Naruto.shuriken_throwed=0;
 				}
+				
+
+
 
 				//Scroll background
 				scrollingOffset-=4;
@@ -521,6 +622,16 @@ int main( int argc, char* args[] )
 					
 				//	cout << s << endl;
 					gNarutoTexture.loadFromFile(s); 
+					for(int i=0;i<3;i++)
+				{
+					if(sos[i].flag_of_shuriken)
+					{
+						sos[i].move();
+						sos[i].render();
+						if(sos[i].mPosX>SCREEN_WIDTH)
+							sos[i].flag_of_shuriken=0;
+					}
+				}
 				//Update screen
 				SDL_RenderPresent( gRenderer );
 			}
