@@ -1,4 +1,4 @@
-Just a school project 
+Just a school project using SDL2 with lazyfoo functions
 This project is linked against:
 ----------------------------------------
 Windows:
