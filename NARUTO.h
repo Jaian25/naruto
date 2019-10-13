@@ -12,13 +12,14 @@ class Naruto
 {
     public:
 		//The dimensions of the Naruto
-		static const int Naruto_WIDTH = 50;
-		static const int Naruto_HEIGHT = 70;
+		static const int Naruto_WIDTH = 30;
+		static const int Naruto_HEIGHT = 67;
 		int mPosX, mPosY;
 		//Maximum axis velocity of the Naruto
 		static const int Naruto_VEL = 10;
 		int jumped;
 		int shuriken_throwed=0;
+		int Life;
 		//Initializes the variables
 		Naruto();
 
@@ -34,7 +35,7 @@ class Naruto
 		double initial ;
 		double velocity;
 		double gravity;
-
+		SDL_Rect Naruto_Rect;
     private:
 		//The X and Y offsets of the Naruto
 		
@@ -57,7 +58,9 @@ Naruto::Naruto()
     initial = -13;
     velocity=initial;
  	gravity=0.5;
-
+ 	Naruto_Rect.w=Naruto_WIDTH;
+ 	Naruto_Rect.h=Naruto_HEIGHT;
+ 	Life=100;
 }
 
 void Naruto::jump()
@@ -131,5 +134,7 @@ void Naruto::move()
         //Move back
         mPosY -= mVelY;
     }
+    Naruto_Rect.x=mPosX;
+    Naruto_Rect.y=mPosY;
 }
 

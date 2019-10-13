@@ -10,11 +10,12 @@
 class Obstacle
 {
 	public:
-		static const int Obstacle_WIDTH = 50;
-		static const int Obstacle_HEIGHT = 70;
+		static const int Obstacle_WIDTH = 30;
+		static const int Obstacle_HEIGHT = 25;
 		int mPosX, mPosY;
 		int mVelX;
 		int flag_of_obstacle;
+		int hitten;
 		//Maximum axis velocity of the Obstacle
 		static const int Obstacle_VEL = -5;
 
@@ -27,6 +28,7 @@ class Obstacle
 		void close();
 		//Shows the Obstacle on the screen
 		void render();
+		SDL_Rect Obstacle_rect; 
 
     private:
 		//The X and Y offsets of the Obstacle
@@ -41,13 +43,16 @@ Obstacle::Obstacle()
 	flag_of_obstacle=0;
 	mPosY=440 ;
 	mPosX=840 + rand()%15000;
-
-
+	Obstacle_rect.w=Obstacle_WIDTH;
+	Obstacle_rect.h=Obstacle_HEIGHT;
+	hitten=0;
 }	
 
 void Obstacle::move()
 {
 	mPosX+=mVelX;
+	Obstacle_rect.x=mPosX;
+	Obstacle_rect.y=mPosY;
 }
 
 

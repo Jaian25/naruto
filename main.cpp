@@ -141,6 +141,7 @@ void close()
 int main( int argc, char* args[] )
 {
 	//Start up SDL and create window
+	srand(time(0));
 	if( !init() )
 	{
 		printf( "Failed to initialize!\n" );
@@ -172,9 +173,10 @@ int main( int argc, char* args[] )
 			int countt=0;
 			Shuriken sos[3];
 			Obstacle rocks[10];
-			srand(time(0));
+			int score=0,counter=0;
 			while( !quit )
 			{
+
 				//Handle events on queue
 				while( SDL_PollEvent( &e ) != 0 )
 				{
@@ -194,7 +196,7 @@ int main( int argc, char* args[] )
 				{
 					if(!rocks[i].flag_of_obstacle)
 					{
-						if(rand()%10==0)
+						if(rand()%2==0)
 						{
 							rocks[i].flag_of_obstacle=1;
 						}
@@ -265,16 +267,37 @@ int main( int argc, char* args[] )
 						{
 							rocks[i].move();
 							rocks[i].render();
+							if(checkCollision(Naruto.Naruto_Rect,rocks[i].Obstacle_rect) && !rocks[i].hitten){
+								cout << "fuck noh!!" << endl;
+								rocks[i].hitten=1;
+								Naruto.Life-=20;
+								
+								cout << "Life :" << Naruto.Life << endl;
+							}
 							if(rocks[i].mPosX<=-10)
 							{
 								rocks[i].mPosX=SCREEN_WIDTH+rand()%15000;
 								rocks[i].flag_of_obstacle=0;
+								rocks[i].hitten=0;
+								score+=10;
 								cout << i << endl;
 							}
 						}
 
 					}
-
+					counter++;
+					if(counter==10)
+					{
+						counter=0;
+						score++;
+					}
+					if(Naruto.Life<=0)
+					{
+						cout << "You are fucked!!" << endl;
+						cout << "Your Score : " << score << endl;
+						SDL_Delay(5000);
+						quit=true;
+					}
 				//Update screen
 				SDL_RenderPresent( gRenderer );
 			}
