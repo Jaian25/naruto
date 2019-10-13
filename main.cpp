@@ -6,317 +6,15 @@ and may not be redistributed without written permission.*/
 #include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include <string>
+#include "texturelib.h"
 #include <bits/stdc++.h>
 using namespace std;
 //Screen dimension constants
 const int SCREEN_WIDTH = 840;
 const int SCREEN_HEIGHT = 480;
-SDL_Window* gWindow = NULL;
-
-//The window renderer
-SDL_Renderer* gRenderer = NULL;
-
-
-double initial = -13;
-double velocity=initial;
-double gravity=0.5;
-//Texture wrapper class
-class LTexture
-{
-	public:
-		//Initializes variables
-		LTexture();
-
-		//Deallocates memory
-		~LTexture();
-
-		//Loads image at specified path
-		bool loadFromFile( std::string path );
-		
-		#if defined(_SDL_TTF_H) || defined(SDL_TTF_H)
-		//Creates image from font string
-		bool loadFromRenderedText( std::string textureText, SDL_Color textColor );
-		#endif
-
-		//Deallocates texture
-		void free();
-
-		//Set color modulation
-		void setColor( Uint8 red, Uint8 green, Uint8 blue );
-
-		//Set blending
-		void setBlendMode( SDL_BlendMode blending );
-
-		//Set alpha modulation
-		void setAlpha( Uint8 alpha );
-		
-		//Renders texture at given point
-		void render( int x, int y, SDL_Rect* clip = NULL, double angle = 0.0, SDL_Point* center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE );
-
-		//Gets image dimensions
-		int getWidth();
-		int getHeight();
-
-	private:
-		//The actual hardware texture
-		SDL_Texture* mTexture;
-
-		//Image dimensions
-		int mWidth;
-		int mHeight;
-};
-LTexture::~LTexture()
-{
-	//Deallocate
-	free();
-}
-
-bool LTexture::loadFromFile( std::string path )
-{
-	//Get rid of preexisting texture
-	free();
-
-	//The final texture
-	SDL_Texture* newTexture = NULL;
-
-	//Load image at specified path
-	SDL_Surface* loadedSurface = IMG_Load( path.c_str() );
-	if( loadedSurface == NULL )
-	{
-		printf( "Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError() );
-	}
-	else
-	{
-		//Color key image
-		SDL_SetColorKey( loadedSurface, SDL_TRUE, SDL_MapRGB( loadedSurface->format, 0, 0xFF, 0xFF ) );
-
-		//Create texture from surface pixels
-        newTexture = SDL_CreateTextureFromSurface( gRenderer, loadedSurface );
-		if( newTexture == NULL )
-		{
-			printf( "Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );
-		}
-		else
-		{
-			//Get image dimensions
-			mWidth = loadedSurface->w;
-			mHeight = loadedSurface->h;
-		}
-
-		//Get rid of old loaded surface
-		SDL_FreeSurface( loadedSurface );
-	}
-
-	//Return success
-	mTexture = newTexture;
-	return mTexture != NULL;
-}
-
-#if defined(_SDL_TTF_H) || defined(SDL_TTF_H)
-bool LTexture::loadFromRenderedText( std::string textureText, SDL_Color textColor )
-{
-	//Get rid of preexisting texture
-	free();
-
-	//Render text surface
-	SDL_Surface* textSurface = TTF_RenderText_Solid( gFont, textureText.c_str(), textColor );
-	if( textSurface != NULL )
-	{
-		//Create texture from surface pixels
-        mTexture = SDL_CreateTextureFromSurface( gRenderer, textSurface );
-		if( mTexture == NULL )
-		{
-			printf( "Unable to create texture from rendered text! SDL Error: %s\n", SDL_GetError() );
-		}
-		else
-		{
-			//Get image dimensions
-			mWidth = textSurface->w;
-			mHeight = textSurface->h;
-		}
-
-		//Get rid of old surface
-		SDL_FreeSurface( textSurface );
-	}
-	else
-	{
-		printf( "Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError() );
-	}
-
-	
-	//Return success
-	return mTexture != NULL;
-}
-#endif
-
-void LTexture::free()
-{
-	//Free texture if it exists
-	if( mTexture != NULL )
-	{
-		SDL_DestroyTexture( mTexture );
-		mTexture = NULL;
-		mWidth = 0;
-		mHeight = 0;
-	}
-}
-
-void LTexture::setColor( Uint8 red, Uint8 green, Uint8 blue )
-{
-	//Modulate texture rgb
-	SDL_SetTextureColorMod( mTexture, red, green, blue );
-}
-
-void LTexture::setBlendMode( SDL_BlendMode blending )
-{
-	//Set blending function
-	SDL_SetTextureBlendMode( mTexture, blending );
-}
-		
-void LTexture::setAlpha( Uint8 alpha )
-{
-	//Modulate texture alpha
-	SDL_SetTextureAlphaMod( mTexture, alpha );
-}
-
-void LTexture::render( int x, int y, SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip )
-{
-	//Set rendering space and render to screen
-	SDL_Rect renderQuad = { x, y, mWidth, mHeight };
-
-	//Set clip rendering dimensions
-	if( clip != NULL )
-	{
-		renderQuad.w = clip->w;
-		renderQuad.h = clip->h;
-	}
-
-	//Render to screen
-	SDL_RenderCopyEx( gRenderer, mTexture, clip, &renderQuad, angle, center, flip );
-}
-
-int LTexture::getWidth()
-{
-	return mWidth;
-}
-
-int LTexture::getHeight()
-{
-	return mHeight;
-}
-LTexture::LTexture()
-{
-	//Initialize
-	mTexture = NULL;
-	mWidth = 0;
-	mHeight = 0;
-}
 
 //The Naruto that will move around on the screen
 //Scene textures
-LTexture gNarutoTexture;
-LTexture gBGTexture;
-LTexture gShurikenTexture;
-
-class Shuriken
-{
-	public:
-		static const int Shuriken_WIDTH = 50;
-		static const int Shuriken_HEIGHT = 70;
-		int mPosX, mPosY;
-		int mVelX;
-		int flag_of_shuriken;
-		//Maximum axis velocity of the Naruto
-		static const int Shuriken_VEL = 10;
-
-		//Initializes the variables
-		Shuriken();
-
-		//Takes key presses and adjusts the Naruto's velocity
-		//Moves the Naruto
-		void move();
-		void close();
-		//Shows the Naruto on the screen
-		void render();
-
-    private:
-		//The X and Y offsets of the Naruto
-		//The velocity of the Naruto
-		int fuck;
-};
-
-Shuriken::Shuriken()
-{
-	
-	mVelX=Shuriken_VEL;
-	flag_of_shuriken=0;
-}	
-
-void Shuriken::move()
-{
-	mPosX+=mVelX;
-}
-void Shuriken::render()
-{
-	gShurikenTexture.render(mPosX,mPosY);
-}
-
-void Shuriken::close()
-{
-	//Free loaded images
-	gShurikenTexture.free();
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-class Naruto
-{
-    public:
-		//The dimensions of the Naruto
-		static const int Naruto_WIDTH = 50;
-		static const int Naruto_HEIGHT = 70;
-		int mPosX, mPosY;
-		//Maximum axis velocity of the Naruto
-		static const int Naruto_VEL = 10;
-		int jumped;
-		int shuriken_throwed=0;
-		//Initializes the variables
-		Naruto();
-
-		//Takes key presses and adjusts the Naruto's velocity
-		void handleEvent( SDL_Event& e );
-
-		//Moves the Naruto
-		void move();
-		void jump();
-
-		//Shows the Naruto on the screen
-		void render();
-
-    private:
-		//The X and Y offsets of the Naruto
-		
-
-		//The velocity of the Naruto
-		int mVelX, mVelY;
-};
 
 //Starts up SDL and creates window
 bool init();
@@ -333,97 +31,8 @@ void close();
 
 
 
-Naruto::Naruto()
-{
-    //Initialize the offsets
-    mPosX = 20;
-    mPosY = 390;
 
-    //Initialize the velocity
-    mVelX = 0;
-    mVelY = 0;
-    jumped=0;
-    shuriken_throwed=0;
-}
 
-void Naruto::jump()
-{
-	if(velocity >= abs(initial)+1)
-	{
-		velocity=initial;
-		jumped=0;
-	}
-	else
-	{
-		mPosY+=velocity;
-		velocity+=gravity;
-
-	}
-}
-
-void Naruto::handleEvent( SDL_Event& e )
-{
-    //If a key was pressed
-	if( e.type == SDL_KEYDOWN && e.key.repeat == 0 )
-    {
-        //Adjust the velocity
-        switch( e.key.keysym.sym )
-        {
-            case SDLK_UP: mVelY -= Naruto_VEL; break;
-            case SDLK_DOWN: mVelY += Naruto_VEL; break;
-            case 'a': mVelX -= Naruto_VEL; break;
-            case 'd': mVelX += Naruto_VEL; break;
-            case 'w': jumped=1;break;
-            case 'q': shuriken_throwed=1;break;
-        }
-    }
-    //If a key was released
-    else if( e.type == SDL_KEYUP && e.key.repeat == 0 )
-    {
-        //Adjust the velocity
-        switch( e.key.keysym.sym )
-        {
-            case SDLK_UP: mVelY += Naruto_VEL; break;
-            case SDLK_DOWN: mVelY -= Naruto_VEL; break;
-            case 'a': mVelX += Naruto_VEL; break;
-            case 'd': mVelX -= Naruto_VEL; break;
-
-        }
-    }
-}
-
-void Naruto::move()
-{
-    //Move the Naruto left or right
-    if(jumped)
-	{
-		jump();
-	}
-    mPosX += mVelX;
-
-    //If the Naruto went too far to the left or right
-    if( ( mPosX < 0 ) || ( mPosX + Naruto_WIDTH > SCREEN_WIDTH ) )
-    {
-        //Move back
-        mPosX -= mVelX;
-    }
-
-    //Move the Naruto up or down
-    mPosY += mVelY;
-
-    //If the Naruto went too far up or down
-    if( ( mPosY < 0 ) || ( mPosY + Naruto_HEIGHT > SCREEN_HEIGHT ) )
-    {
-        //Move back
-        mPosY -= mVelY;
-    }
-}
-
-void Naruto::render()
-{
-    //Show the Naruto
-	gNarutoTexture.render( mPosX, mPosY );
-}
 
 bool init()
 {
@@ -502,6 +111,11 @@ bool loadMedia()
 		printf( "Failed to load background texture!\n" );
 		success = false;
 	}
+	if( !gObstacleTexture.loadFromFile( "rock.png" ) )
+	{
+		printf( "Failed to load background texture!\n" );
+		success = false;
+	}
 
 	return success;
 }
@@ -511,7 +125,8 @@ void close()
 	//Free loaded images
 	gNarutoTexture.free();
 	gBGTexture.free();
-
+	gShurikenTexture.free();
+	gObstacleTexture.free();
 	//Destroy window	
 	SDL_DestroyRenderer( gRenderer );
 	SDL_DestroyWindow( gWindow );
@@ -556,6 +171,8 @@ int main( int argc, char* args[] )
 			string s= "n1.png";
 			int countt=0;
 			Shuriken sos[3];
+			Obstacle rocks[10];
+			srand(time(0));
 			while( !quit )
 			{
 				//Handle events on queue
@@ -572,6 +189,18 @@ int main( int argc, char* args[] )
 				}
 
 				//Move the Naruto
+
+				for(int i=0;i < 10 ; i++ )
+				{
+					if(!rocks[i].flag_of_obstacle)
+					{
+						if(rand()%10==0)
+						{
+							rocks[i].flag_of_obstacle=1;
+						}
+					}
+				}
+
 				Naruto.move();
 				if(Naruto.shuriken_throwed)
 				{
@@ -591,10 +220,8 @@ int main( int argc, char* args[] )
 				}
 				
 
-
-
 				//Scroll background
-				scrollingOffset-=4;
+				scrollingOffset-=5;
 				if( scrollingOffset < -gBGTexture.getWidth() )
 				{
 					scrollingOffset = 0;
@@ -623,15 +250,31 @@ int main( int argc, char* args[] )
 				//	cout << s << endl;
 					gNarutoTexture.loadFromFile(s); 
 					for(int i=0;i<3;i++)
-				{
-					if(sos[i].flag_of_shuriken)
 					{
-						sos[i].move();
-						sos[i].render();
-						if(sos[i].mPosX>SCREEN_WIDTH)
-							sos[i].flag_of_shuriken=0;
+						if(sos[i].flag_of_shuriken)
+						{
+							sos[i].move();
+							sos[i].render();
+							if(sos[i].mPosX>SCREEN_WIDTH)
+								sos[i].flag_of_shuriken=0;
+						}
 					}
-				}
+					for(int i=0;i < 10 ; i++ )
+					{
+						if(rocks[i].flag_of_obstacle)
+						{
+							rocks[i].move();
+							rocks[i].render();
+							if(rocks[i].mPosX<=-10)
+							{
+								rocks[i].mPosX=SCREEN_WIDTH+rand()%15000;
+								rocks[i].flag_of_obstacle=0;
+								cout << i << endl;
+							}
+						}
+
+					}
+
 				//Update screen
 				SDL_RenderPresent( gRenderer );
 			}
