@@ -116,6 +116,11 @@ bool loadMedia()
 		printf( "Failed to load background texture!\n" );
 		success = false;
 	}
+	if( !gHealthTexture.loadFromFile( "health/1h.png" ) )
+	{
+		printf( "Failed to load background texture!\n" );
+		success = false;
+	}
 
 	return success;
 }
@@ -174,6 +179,8 @@ int main( int argc, char* args[] )
 			Shuriken sos[3];
 			Obstacle rocks[10];
 			int score=0,counter=0;
+			char health_char='1';
+			string health_path="health/1h.png";
 			while( !quit )
 			{
 
@@ -270,7 +277,9 @@ int main( int argc, char* args[] )
 							if(checkCollision(Naruto.Naruto_Rect,rocks[i].Obstacle_rect) && !rocks[i].hitten){
 								cout << "fuck noh!!" << endl;
 								rocks[i].hitten=1;
-								Naruto.Life-=20;
+								Naruto.Life-=25;
+								health_path[7]++;
+								gHealthTexture.loadFromFile(health_path);
 								
 								cout << "Life :" << Naruto.Life << endl;
 							}
@@ -291,6 +300,8 @@ int main( int argc, char* args[] )
 						counter=0;
 						score++;
 					}
+					gHealthTexture.render(10,10);
+					SDL_RenderPresent( gRenderer );
 					if(Naruto.Life<=0)
 					{
 						cout << "You are fucked!!" << endl;
@@ -299,7 +310,8 @@ int main( int argc, char* args[] )
 						quit=true;
 					}
 				//Update screen
-				SDL_RenderPresent( gRenderer );
+					
+		
 			}
 		}
 	}

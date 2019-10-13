@@ -210,6 +210,7 @@ LTexture gNarutoTexture;
 LTexture gBGTexture;
 LTexture gShurikenTexture;
 LTexture gObstacleTexture;
+LTexture gHealthTexture;
 
 void Naruto::render()
 {
