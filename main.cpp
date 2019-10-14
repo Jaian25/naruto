@@ -7,6 +7,7 @@ and may not be redistributed without written permission.*/
 #include <stdio.h>
 #include <string>
 #include "texturelib.h"
+#include <SDL2/SDL_mixer.h>
 #include <bits/stdc++.h>
 using namespace std;
 //Screen dimension constants
@@ -15,7 +16,7 @@ const int SCREEN_HEIGHT = 480;
 
 //The Naruto that will move around on the screen
 //Scene textures
-
+Mix_Music *gMusic = NULL;
 //Starts up SDL and creates window
 bool init();
 
@@ -84,6 +85,11 @@ bool init()
 			}
 		}
 	}
+	if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
+				{
+					printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
+					success = false;
+				}
 
 	return success;
 }
@@ -121,6 +127,12 @@ bool loadMedia()
 		printf( "Failed to load background texture!\n" );
 		success = false;
 	}
+	gMusic = Mix_LoadMUS( "mu2.ogg" );
+	if( gMusic == NULL )
+	{
+		printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError() );
+		success = false;
+	}
 
 	return success;
 }
@@ -132,6 +144,7 @@ void close()
 	gBGTexture.free();
 	gShurikenTexture.free();
 	gObstacleTexture.free();
+	Mix_HaltMusic();
 	//Destroy window	
 	SDL_DestroyRenderer( gRenderer );
 	SDL_DestroyWindow( gWindow );
@@ -176,17 +189,22 @@ int main( int argc, char* args[] )
 			
 			string s= "n1.png";
 			int countt=0;
+			int waiting_for_shuriken=0;
 			Shuriken sos[3];
 			Obstacle rocks[10];
+			int shot_shuriken=0;
 			int score=0,counter=0;
 			char health_char='1';
 			string health_path="health/1h.png";
+			Mix_PlayMusic( gMusic, -1 );
+			//int solid=0;
 			while( !quit )
 			{
-
+				//solid++;
 				//Handle events on queue
 				while( SDL_PollEvent( &e ) != 0 )
 				{
+					//solid++;
 					//User requests quit
 					if( e.type == SDL_QUIT )
 					{
@@ -211,17 +229,29 @@ int main( int argc, char* args[] )
 				}
 
 				Naruto.move();
+				waiting_for_shuriken++;
+				if(waiting_for_shuriken%220==0)
+					shot_shuriken=0;
 				if(Naruto.shuriken_throwed)
 				{
 
-					for(int i=0 ; i < 3; i++)
+
+					for(int i=0 ; i < 2; i++)
 					{
+						if(waiting_for_shuriken<=220)
+							continue;
 						if(!sos[i].flag_of_shuriken)
 						{
-							//cout << i << endl;
+							cout << i << endl;
+							shot_shuriken++;
+							if(shot_shuriken==2)
+							{
+								shot_shuriken=0;
+								waiting_for_shuriken=0;
+							}
 							sos[i].flag_of_shuriken=1;
 							sos[i].mPosX=Naruto.mPosX+Naruto.Naruto_WIDTH;
-							sos[i].mPosY=Naruto.mPosY + Naruto.Naruto_HEIGHT/3;
+							sos[i].mPosY=Naruto.mPosY + Naruto.Naruto_HEIGHT/2 -5;
 							break;
 						}
 					}	
@@ -230,7 +260,7 @@ int main( int argc, char* args[] )
 				
 
 				//Scroll background
-				scrollingOffset-=5;
+				scrollingOffset-=8;
 				if( scrollingOffset < -gBGTexture.getWidth() )
 				{
 					scrollingOffset = 0;
@@ -246,72 +276,93 @@ int main( int argc, char* args[] )
 
 				//Render objects
 			//	if(fl){
-					Naruto.render();
-				//	fl^=1;
-					countt++;
-					if(countt==6){
-						s[1]++;
-						if(s[1]=='7')
-							s[1]='1';
-						countt=0;
-					}
-					
-				//	cout << s << endl;
-					gNarutoTexture.loadFromFile(s); 
-					for(int i=0;i<3;i++)
+				Naruto.render();
+			//	fl^=1;
+				countt++;
+				if(countt==5){
+					s[1]++;
+					if(s[1]=='7')
+						s[1]='1';
+					countt=0;
+				}
+				
+			//	cout << s << endl;
+				gNarutoTexture.loadFromFile(s); 
+				for(int i=0;i<3;i++)
+				{
+					if(sos[i].flag_of_shuriken)
 					{
-						if(sos[i].flag_of_shuriken)
-						{
-							sos[i].move();
-							sos[i].render();
-							if(sos[i].mPosX>SCREEN_WIDTH)
-								sos[i].flag_of_shuriken=0;
-						}
+						sos[i].move();
+						sos[i].render();
+						if(sos[i].mPosX>SCREEN_WIDTH)
+							sos[i].flag_of_shuriken=0;
 					}
-					for(int i=0;i < 10 ; i++ )
+				}
+				for(int i=0;i < 10 ; i++ )
+				{
+					if(rocks[i].flag_of_obstacle)
 					{
-						if(rocks[i].flag_of_obstacle)
-						{
-							rocks[i].move();
-							rocks[i].render();
-							if(checkCollision(Naruto.Naruto_Rect,rocks[i].Obstacle_rect) && !rocks[i].hitten){
-								cout << "fuck noh!!" << endl;
-								rocks[i].hitten=1;
-								Naruto.Life-=25;
-								health_path[7]++;
-								gHealthTexture.loadFromFile(health_path);
-								
-								cout << "Life :" << Naruto.Life << endl;
-							}
-							if(rocks[i].mPosX<=-10)
-							{
-								rocks[i].mPosX=SCREEN_WIDTH+rand()%15000;
-								rocks[i].flag_of_obstacle=0;
-								rocks[i].hitten=0;
-								score+=10;
-								cout << i << endl;
-							}
+						rocks[i].move();
+						
+						if(checkCollision(Naruto.Naruto_Rect,rocks[i].Obstacle_rect) && !rocks[i].hitten){
+							cout << "fuck noh!!" << endl;
+							rocks[i].hitten=1;
+							Naruto.Life-=25;
+							health_path[7]++;
+							gHealthTexture.loadFromFile(health_path);
+							
+							cout << "Life :" << Naruto.Life << endl;
 						}
+						if(rocks[i].mPosX<=-10)
+						{
+							rocks[i].mPosX=SCREEN_WIDTH+rand()%15000;
+							rocks[i].flag_of_obstacle=0;
+							rocks[i].hitten=0;
+							score+=10;
+							cout << i << endl;
+						}
+						if(rocks[i].mPosX < SCREEN_WIDTH)
+						{
 
+
+							for(int j=0;j<3;j++)
+							{
+								if(checkCollision(sos[j].Shuriken_rect, rocks[i].Obstacle_rect ) && sos[j].flag_of_shuriken )
+								{
+									cout << "fucl yea" << endl;
+									score+=10;
+									rocks[i].mPosX=SCREEN_WIDTH+rand()%15000;
+									rocks[i].flag_of_obstacle=0;
+									rocks[i].hitten=0;
+									sos[j].flag_of_shuriken=0;
+
+								}
+							}
+						}
+						rocks[i].render();
 					}
-					counter++;
-					if(counter==10)
-					{
-						counter=0;
-						score++;
-					}
-					gHealthTexture.render(10,10);
-					SDL_RenderPresent( gRenderer );
-					if(Naruto.Life<=0)
-					{
-						cout << "You are fucked!!" << endl;
-						cout << "Your Score : " << score << endl;
-						SDL_Delay(5000);
-						quit=true;
-					}
-				//Update screen
+
+
+				}
+				counter++;
+				if(counter==10)
+				{
+					counter=0;
+					score++;
+				}
+				gHealthTexture.render(10,10);
+				SDL_RenderPresent( gRenderer );
+				if(Naruto.Life<=0)
+				{
+					cout << "You are fucked!!" << endl;
+					cout << "Your Score : " << score << endl;
 					
-		
+					SDL_Delay(1000);
+					quit=true;
+				}
+			//Update screen
+				
+	
 			}
 		}
 	}

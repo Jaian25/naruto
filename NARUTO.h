@@ -18,7 +18,7 @@ class Naruto
 		//Maximum axis velocity of the Naruto
 		static const int Naruto_VEL = 10;
 		int jumped;
-		int shuriken_throwed=0;
+		int shuriken_throwed;
 		int Life;
 		//Initializes the variables
 		Naruto();
@@ -48,7 +48,7 @@ Naruto::Naruto()
 {
     //Initialize the offsets
     mPosX = 20;
-    mPosY = 390;
+    mPosY = 395;
 
     //Initialize the velocity
     mVelX = 0;
