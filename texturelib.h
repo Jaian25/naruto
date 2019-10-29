@@ -5,6 +5,7 @@
 #include "NARUTO.h"
 #include "shurikenlib.h"
 #include "obstacle.h"
+#include <SDL2/SDL_ttf.h>
 
 
 SDL_Window* gWindow = NULL;
@@ -13,6 +14,7 @@ SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 
 
+TTF_Font *gFont = NULL;
 
 //Texture wrapper class
 class LTexture
@@ -211,6 +213,16 @@ LTexture gBGTexture;
 LTexture gShurikenTexture;
 LTexture gObstacleTexture;
 LTexture gHealthTexture;
+LTexture gPowerTexture;
+LTexture gMenuTexture;
+LTexture gMenuPlayTexture;
+LTexture gMenuInsTexture;
+LTexture gMenuLeadTexture;
+LTexture gMenuExitTexture;
+//Scene textures
+LTexture gPromptTextTexture;
+LTexture gInputTextTexture;
+LTexture U_BG;
 
 void Naruto::render()
 {
