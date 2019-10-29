@@ -5,16 +5,17 @@
 #include "NARUTO.h"
 #include "shurikenlib.h"
 #include "obstacle.h"
+#include "moving_obstacle.h"
 #include <SDL2/SDL_ttf.h>
 
-
+using namespace std;
 SDL_Window* gWindow = NULL;
 
 //The window renderer
 SDL_Renderer* gRenderer = NULL;
 
 
-TTF_Font *gFont = NULL;
+TTF_Font *gFont = NULL, *sFont = NULL;
 
 //Texture wrapper class
 class LTexture
@@ -223,6 +224,8 @@ LTexture gMenuExitTexture;
 LTexture gPromptTextTexture;
 LTexture gInputTextTexture;
 LTexture U_BG;
+LTexture gScore;
+LTexture gMovingObstacle;
 
 void Naruto::render()
 {
@@ -243,6 +246,8 @@ void Obstacle::render()
 {
 	gObstacleTexture.render(mPosX,mPosY);
 }
+
+
 bool checkCollision( SDL_Rect a, SDL_Rect b )
 {
     //The sides of the rectangles

@@ -2,11 +2,8 @@
 #include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include <string>
+#include "constants.h"
 //#include "texturelib.h"
-
-
-
-
 
 class Naruto
 {
@@ -20,6 +17,7 @@ class Naruto
 		int jumped;
 		int shuriken_throwed;
 		int Life;
+		int Power;
 		//Initializes the variables
 		Naruto();
 
@@ -48,7 +46,7 @@ Naruto::Naruto()
 {
     //Initialize the offsets
     mPosX = 20;
-    mPosY = 395;
+    mPosY = GROUND;
 
     //Initialize the velocity
     mVelX = 0;
@@ -61,6 +59,7 @@ Naruto::Naruto()
  	Naruto_Rect.w=Naruto_WIDTH;
  	Naruto_Rect.h=Naruto_HEIGHT;
  	Life=100;
+ 	Power=0;
 }
 
 void Naruto::jump()
@@ -119,7 +118,7 @@ void Naruto::move()
     mPosX += mVelX;
 
     //If the Naruto went too far to the left or right
-    if( ( mPosX < 0 ) || ( mPosX + Naruto_WIDTH > 840 ) )
+    if( ( mPosX < 0 ) || ( mPosX + Naruto_WIDTH > SCREEN_WIDTH/2 ) )
     {
         //Move back
         mPosX -= mVelX;
@@ -129,7 +128,7 @@ void Naruto::move()
     mPosY += mVelY;
 
     //If the Naruto went too far up or down
-    if( ( mPosY < 0 ) || ( mPosY + Naruto_HEIGHT > 480 ) )
+    if( ( mPosY < 0 ) || ( mPosY + Naruto_HEIGHT > SCREEN_HEIGHT ) )
     {
         //Move back
         mPosY -= mVelY;

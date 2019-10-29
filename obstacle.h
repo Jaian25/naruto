@@ -10,8 +10,8 @@
 class Obstacle
 {
 	public:
-		static const int Obstacle_WIDTH = 30;
-		static const int Obstacle_HEIGHT = 25;
+		int Obstacle_WIDTH = 30;
+		int Obstacle_HEIGHT = 25;
 		int mPosX, mPosY;
 		int mVelX;
 		int flag_of_obstacle;
@@ -41,7 +41,7 @@ Obstacle::Obstacle()
 	
 	mVelX=Obstacle_VEL;
 	flag_of_obstacle=0;
-	mPosY=437 ;
+	mPosY=GROUND + 5*Obstacle_HEIGHT/3;
 	mPosX=840 + rand()%15000;
 	Obstacle_rect.w=Obstacle_WIDTH;
 	Obstacle_rect.h=Obstacle_HEIGHT;

@@ -30,8 +30,7 @@ void close();
 int where = MENU, whereInMenu;
 
 
-
-
+char getScore[100];
 
 
 bool init()
@@ -111,6 +110,7 @@ bool loadMedia()
 	}
 	//Open the font
 	gFont = TTF_OpenFont( "lazy.ttf", 28 );
+	sFont = TTF_OpenFont( "score.ttf", 28 );
 	if( gFont == NULL )
 	{
 		printf( "Failed to load lazy font! SDL_ttf Error: %s\n", TTF_GetError() );
@@ -120,6 +120,7 @@ bool loadMedia()
 	{	
 		//Render the prompt
 		TTF_SetFontStyle(gFont, TTF_STYLE_BOLD);
+		//TTF_SetFontStyle(sFont, TTF_STYLE_BOLD);
 		SDL_Color textColor = { 255, 255, 255, 0xFF };
 		string T = "Enter Handle : ";
 		if( !gPromptTextTexture.loadFromRenderedText( T.c_str(), textColor ) )
@@ -317,8 +318,13 @@ int main( int argc, char* args[] )
 			int waiting_for_shuriken=0;
 			Shuriken sos[5];
 			Obstacle rocks[10];
+			Moving_Obstacle ninja[10];
+			for(int i=0;i<10;i++)
+			{
+				ninja[i].path_of_Moving_Obstacle='1';
+			}
 			int shot_shuriken=0;
-			int score=0,counter=0;
+			int score=0,counter=0, prevscore = 0;
 			char health_char='1';
 			string health_path="health/1h.png";
 			string power_path="power/0.png";
@@ -368,6 +374,7 @@ int main( int argc, char* args[] )
 							if(e.key.keysym.sym == SDLK_RETURN && inputText.size()){
 								//ScreenQuit = true;
 								where = GAME;
+								gFont = sFont;
 								SDL_StopTextInput();
 								SDL_Delay(250);
 							}
@@ -493,6 +500,8 @@ int main( int argc, char* args[] )
 
 				if(where == GAME){
 
+					renderText = true;
+
 					//Move the Naruto
 
 					for(int i=0;i < 10 ; i++ )
@@ -502,6 +511,13 @@ int main( int argc, char* args[] )
 							if(rand()%2==0)
 							{
 								rocks[i].flag_of_obstacle=1;
+							}
+						}
+						if(!ninja[i].flag_of_obstacle)
+						{
+							if(rand()%107==0)
+							{
+								ninja[i].flag_of_obstacle=1;
 							}
 						}
 					}
@@ -624,17 +640,83 @@ int main( int argc, char* args[] )
 
 
 					}
+
+					for(int i=0;i < 10 ; i++ )
+					{
+						if(ninja[i].flag_of_obstacle)
+						{
+							ninja[i].move();
+							
+							if(checkCollision(Naruto.Naruto_Rect,ninja[i].Moving_Obstacle_rect) && !ninja[i].hitten){
+								cout << "fuck noh injaaa!!" << endl;
+								ninja[i].hitten=1;
+								Naruto.Life-=25;
+								health_path[7]++;
+								gHealthTexture.loadFromFile(health_path);
+								
+								cout << "Life :" << Naruto.Life << endl;
+							}
+							if(ninja[i].mPosX<=-10)
+							{
+								ninja[i].mPosX=SCREEN_WIDTH+rand()%15000;
+								ninja[i].flag_of_obstacle=0;
+								ninja[i].hitten=0;
+								score+=10;
+								
+							}
+							if(ninja[i].mPosX < SCREEN_WIDTH)
+							{
+
+
+								for(int j=0;j<5;j++)
+								{
+									if(checkCollision(sos[j].Shuriken_rect, ninja[i].Moving_Obstacle_rect ) && sos[j].flag_of_shuriken )
+									{
+										cout << "fucl yea inja" << endl;
+										score+=50;
+										ninja[i].mPosX=SCREEN_WIDTH+rand()%15000;
+										ninja[i].flag_of_obstacle=0;
+										ninja[i].hitten=0;
+										sos[j].flag_of_shuriken=0;
+
+									}
+								}
+							}
+							ninja[i].counter++;
+							if(ninja[i].counter==5){
+
+								ninja[i].path_of_Moving_Obstacle++;
+
+								if(ninja[i].path_of_Moving_Obstacle=='4')
+									ninja[i].path_of_Moving_Obstacle='1';
+								ninja[i].counter=0;
+							}
+
+							string temp="ninja/";
+							temp+= ninja[i].path_of_Moving_Obstacle;
+							temp+=".png";
+							gMovingObstacle.loadFromFile(temp);
+
+							gMovingObstacle.render(ninja[i].mPosX,ninja[i].mPosY);
+							//cout << ninja[i].mPosX << " ";
+						}
+
+
+					}
 					counter++;
 					if(counter==10)
 					{
 						counter=0;
 						score++;
 					}
-					
 
+					sprintf(getScore, "Score : %04d", score);
+					gScore.loadFromRenderedText( getScore, textColor );
+					gScore.render( ( SCREEN_WIDTH - gScore.getWidth() - gScore.getWidth()) + 50, 35);
 					
 					gHealthTexture.render(50,10);
 					gPowerTexture.render(50,50);
+					
 					SDL_RenderPresent( gRenderer );
 					if(Naruto.Life<=0)
 					{
