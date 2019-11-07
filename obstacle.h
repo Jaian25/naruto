@@ -26,6 +26,7 @@ class Obstacle
 		//Moves the Obstacle
 		void move();
 		void close();
+		void init();
 		//Shows the Obstacle on the screen
 		void render();
 		SDL_Rect Obstacle_rect; 
@@ -35,7 +36,16 @@ class Obstacle
 		//The velocity of the Obstacle
 		int fuck;
 };
-
+void Obstacle::init()
+{
+	mVelX=Obstacle_VEL;
+	flag_of_obstacle=0;
+	mPosY=GROUND + 5*Obstacle_HEIGHT/3;
+	mPosX=840 + rand()%15000;
+	Obstacle_rect.w=Obstacle_WIDTH;
+	Obstacle_rect.h=Obstacle_HEIGHT;
+	hitten=0;
+}
 Obstacle::Obstacle()
 {
 	

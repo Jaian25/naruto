@@ -15,7 +15,7 @@ SDL_Window* gWindow = NULL;
 SDL_Renderer* gRenderer = NULL;
 
 
-TTF_Font *gFont = NULL, *sFont = NULL;
+TTF_Font *gFont = NULL, *sFont = NULL, *mainFont = NULL;
 
 //Texture wrapper class
 class LTexture
@@ -116,7 +116,7 @@ bool LTexture::loadFromRenderedText( std::string textureText, SDL_Color textColo
 	free();
 
 	//Render text surface
-	SDL_Surface* textSurface = TTF_RenderText_Solid( gFont, textureText.c_str(), textColor );
+	SDL_Surface* textSurface = TTF_RenderText_Blended( mainFont, textureText.c_str(), textColor);
 	if( textSurface != NULL )
 	{
 		//Create texture from surface pixels
@@ -209,6 +209,7 @@ LTexture::LTexture()
 	mHeight = 0;
 }
 
+LTexture gBirdTexture;
 LTexture gNarutoTexture;
 LTexture gBGTexture;
 LTexture gShurikenTexture;
@@ -222,10 +223,13 @@ LTexture gMenuLeadTexture;
 LTexture gMenuExitTexture;
 //Scene textures
 LTexture gPromptTextTexture;
-LTexture gInputTextTexture;
+LTexture gPlayerHandleTexture;
 LTexture U_BG;
 LTexture gScore;
 LTexture gMovingObstacle;
+LTexture gLeaderBoard1;
+LTexture gLeaderBoard2;
+LTexture gLeaderBoardScores[10];
 
 void Naruto::render()
 {

@@ -11,5 +11,7 @@ extern int GAME_SCORE = 4;
 extern int INSTRUCTION = 5;
 extern int LEADERBOARD = 6;
 extern int EXIT = 7;
+extern int BACK = 8;
+extern bool PauseOn = 0;
 
 extern int DEFAULT = 0;

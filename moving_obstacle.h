@@ -29,6 +29,7 @@ class Moving_Obstacle
 		//Moves the Moving_Obstacle
 		void move();
 		void close();
+		void init();
 		//Shows the Moving_Obstacle on the screen
 		void render(int id);
 		SDL_Rect Moving_Obstacle_rect; 
@@ -38,6 +39,18 @@ class Moving_Obstacle
 		//The velocity of the Moving_Obstacle
 		int fuck;
 };
+
+void Moving_Obstacle::init()
+{
+	mVelX=Moving_Obstacle_VEL;
+	flag_of_obstacle=0;
+
+	mPosX=SCREEN_WIDTH+ rand()%15000;
+	Moving_Obstacle_rect.w=Moving_Obstacle_WIDTH;
+	Moving_Obstacle_rect.h=Moving_Obstacle_HEIGHT;
+	hitten=0;
+	counter=0;	
+}
 
 Moving_Obstacle::Moving_Obstacle()
 {
